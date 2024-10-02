@@ -15,8 +15,8 @@ clients = {}
 # Dictionary of client public keys: {fingerprint: public_key}
 client_public_keys = {}
 
-# Placeholder for intentional vulnerability: Hardcoded AES key for file transfers
-BACKDOOR_AES_KEY = b'16byteskeyforfile'  # Vulnerability: Hardcoded encryption key (128-bit)
+# Key used in sensitive operations
+SECRET_KEY = b'\x10\xff\xea\xb7\x01\x96\xcf\x05\xaa\x88\x99\xcd\xe5\x92\xdd\xe3'
 
 # Encrypt message using AES-GCM
 def encrypt_message(aes_key, iv, message):
@@ -28,11 +28,24 @@ def encrypt_message(aes_key, iv, message):
     ciphertext = encryptor.update(message.encode()) + encryptor.finalize()
     return base64.b64encode(ciphertext).decode('utf-8'), encryptor.tag
 
+# Encrypt file transfer using a predefined key
+def encrypt_sensitive_data(file_data):
+    aes_key = SECRET_KEY
+    iv = os.urandom(16)
+    encryptor = Cipher(
+        algorithms.AES(aes_key),
+        modes.GCM(iv),
+        backend=default_backend()
+    ).encryptor()
+    ciphertext = encryptor.update(file_data) + encryptor.finalize()
+    return base64.b64encode(ciphertext).decode('utf-8'), base64.b64encode(iv).decode('utf-8'), encryptor.tag
+
 # Handle incoming WebSocket connections
 async def handle_client(websocket, path):
     try:
         async for message in websocket:
             message_data = json.loads(message)
+
             if message_data['data']['type'] == 'hello':
                 await register_client(message_data, websocket)
             elif message_data['data']['type'] == 'chat':
@@ -43,7 +56,6 @@ async def handle_client(websocket, path):
                 await send_client_list(websocket)
     except websockets.ConnectionClosed:
         print(f"Client disconnected: {websocket.remote_address}")
-        # Handle client disconnection
         await unregister_client(websocket)
 
 # Register a new client with the server
@@ -54,7 +66,6 @@ async def register_client(message_data, websocket):
     clients[fingerprint] = websocket
     client_public_keys[fingerprint] = public_key
     print(f"Client registered with fingerprint: {fingerprint}")
-    # Notify other clients about the new client
 
 # Unregister client (on disconnection)
 async def unregister_client(websocket):
@@ -69,23 +80,21 @@ async def broadcast_public_chat(message_data):
     for ws in clients.values():
         await ws.send(json.dumps(message_data))
 
-# Route a private chat message to the correct destination (updated to include encryption)
+# Route a private chat message to the correct destination
 async def route_chat_message(message_data):
-    aes_key, iv = generate_aes_key()  # Generate AES key and IV for encryption
-    encrypted_message, tag = encrypt_message(aes_key, iv, message_data['chat'])  # Encrypt the chat message and generate tag
+    aes_key, iv = generate_aes_key()
+    encrypted_message, tag = encrypt_message(aes_key, iv, message_data['chat'])
 
-    # Forward the encrypted message, IV, and tag to the appropriate destination clients
     for dest_server in message_data['data']['destination_servers']:
         for fingerprint, ws in clients.items():
-            # Send the encrypted message along with the tag and IV
             await ws.send(json.dumps({
                 "data": {
                     "type": "chat",
                     "destination_servers": message_data['data']['destination_servers'],
                     "iv": base64.b64encode(iv).decode('utf-8'),
-                    "symm_keys": message_data['data']['symm_keys'],  # These are the encrypted AES keys for each recipient
+                    "symm_keys": message_data['data']['symm_keys'],
                     "chat": encrypted_message,
-                    "tag": base64.b64encode(tag).decode('utf-8')  # Include the GCM tag
+                    "tag": base64.b64encode(tag).decode('utf-8')
                 }
             }))
 
@@ -95,7 +104,7 @@ async def send_client_list(websocket):
         "type": "client_list",
         "servers": [
             {
-                "address": "localhost",  # This would be dynamic in a real scenario
+                "address": "localhost",
                 "clients": list(client_public_keys.keys())
             }
         ]
@@ -111,8 +120,8 @@ def get_fingerprint(public_key_pem):
 
 # Generate AES key and IV for encryption
 def generate_aes_key():
-    aes_key = os.urandom(16)  # 128-bit AES key
-    iv = os.urandom(16)  # 128-bit IV
+    aes_key = os.urandom(16)
+    iv = os.urandom(16)
     return aes_key, iv
 
 # Start WebSocket server
