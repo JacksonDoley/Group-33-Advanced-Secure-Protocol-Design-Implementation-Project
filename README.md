@@ -4,8 +4,11 @@
 
 ## Features
 **User Login Authentication**: In order to utilise the chat system, users must first log in using their username and password.
+
 **Message Encryption and Decryption**: For security purposes, messages are encrypted before being sent and decoded when they are received.
+
 **File Transfer**: Provides capabilities for point-to-point file transfers.
+
 **Intentional Backdoors**: A number of backdoors are created to mimic security flaws that might be profitably used.
 
 ## SetUp
