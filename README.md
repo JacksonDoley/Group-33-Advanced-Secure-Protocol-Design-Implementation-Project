@@ -20,6 +20,7 @@ Dependencies:
 - websockets
 - cryptography
 - json
+- asyncio
   
 To install dependencies, run:
 
