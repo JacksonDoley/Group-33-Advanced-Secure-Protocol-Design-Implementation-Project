@@ -1,11 +1,6 @@
 ## Introduction
 Through the implementation of a server and client component, this project creates a rudimentary chat system that facilitates communication between numerous clients. Incoming connections are managed by the server, which also enables communication between connected clients. Through the server, users may send and receive messages using the client application. Despite having important features like user listings, private messaging, and group messaging, this system can be easy to use. It does, however, also include deliberate flaws included for testing and teaching.
 
-# Usage Instructions
-1. **Login**: Use the username `admin` and password `password123` to log in.
-2. **Send Messages**: Type your message in the input box and click the "Send" button. Messages will be encrypted and then displayed in the chat window.
-3. **File Transfer**: Click the "Send File" button to upload and display the file name. (Further development needed for actual secure file transmission).
-4. **Security Warnings**: Note that this system includes intentional vulnerabilities; do not use it in a production environment.
 
 ## Features
 **User Login Authentication**: In order to utilise the chat system, users must first log in using their username and password.
@@ -15,7 +10,9 @@ Through the implementation of a server and client component, this project create
 
 ## SetUp
 Prerequisites
+
 Python 3.8+
+
 Dependencies:
 - websockets
 - cryptography
