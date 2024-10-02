@@ -27,15 +27,19 @@ pip install websockets cryptography
 
 ## Running the Server
 1. Navigate to the directory containing server.py.
+
 2. Run the server:
-python server.py
+   
+`python server.py`
+
 This will start the WebSocket server on ws://localhost:12345, awaiting client connections.
 
 ## Running the Client
 1.Navigate to the directory containing client.py.
+
 2.Run the client:
 
-python client.py
+`python client.py`
 
 The client will:
 
