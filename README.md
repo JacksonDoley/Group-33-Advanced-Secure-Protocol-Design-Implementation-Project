@@ -31,6 +31,25 @@ json
 base64
 os
 
+Download the project files:
+
+a. Go to the GitHub repository page.
+b. Click the "Code" button and select "Download ZIP".
+c. Once downloaded, unzip the file to a location of your choice. 
+
+On Windows: Right-click the ZIP file and select "Extract All", then choose a destination.
+On macOS: Double-click the ZIP file to extract its contents.
+On Linux: Use the unzip command in the terminal:
+`unzip [downloaded-file.zip] -d [destination-directory]`
+
+
+d. Open a terminal and navigate to the extracted directory:
+`cd path/to/extracted/directory`
+
+
+
+(Optional) Configure the server address and port in both server.py and client.py if you want to use a different address than the default localhost:12345.
+
 ## Running the Server
 1. Navigate to the directory containing server.py.
 
