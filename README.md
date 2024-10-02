@@ -1,5 +1,5 @@
 ## Introduction
-  Through the implementation of a server and client component, this project creates a rudimentary chat system that facilitates communication between numerous clients. Incoming connections are managed by the server, which also enables communication between connected clients. Through the server, users may send and receive messages using the client application. Despite having important features like user listings, private messaging, and group messaging, this system can be easy to use. It does, however, also include deliberate flaws included for testing and teaching.
+Through the implementation of a server and client component, this project creates a rudimentary chat system that facilitates communication between numerous clients. Incoming connections are managed by the server, which also enables communication between connected clients. Through the server, users may send and receive messages using the client application. Despite having important features like user listings, private messaging, and group messaging, this system can be easy to use. It does, however, also include deliberate flaws included for testing and teaching.
 
 
 ## Features
@@ -19,12 +19,17 @@ Python 3.8+
 Dependencies:
 - websockets
 - cryptography
-- json
-- asyncio
-  
+
 To install dependencies, run:
 
 `pip install websockets cryptography`
+
+Note: The following built-in Python modules are also used and do not require separate installation:
+
+asyncio
+json
+base64
+os
 
 ## Running the Server
 1.Navigate to the directory containing server.py.
@@ -49,7 +54,67 @@ Register by sending a "hello" message with its public RSA key.
 Enable secure private messaging by encrypting messages with AES keys, which are exchanged securely via RSA.
 Handle public messages broadcast by the server.
 
+## Using the Chat System
+After connecting a client, you can interact with the system using the following commands and features:
 
+ 1. User Registration (Hello Message)
+
+When you first connect, the client automatically sends a "hello" message with your public key to register with the server.
+
+ 2. Listing Online Users
+
+To get a list of all currently connected clients across all servers in the neighbourhood:
+Copy/list
+
+
+ 3. Sending Private Messages
+
+To send an encrypted private message:
+Copy/msg <fingerprint> <message>
+Replace <fingerprint> with the recipient's fingerprint and <message> with your message.
+
+ 4. Sending Group Messages
+
+To send an encrypted group message, use multiple fingerprints:
+Copy/msg <fingerprint1> <fingerprint2> ... <message>
+
+
+ 5. Sending Public Messages
+
+To send an unencrypted public message to all users:
+Copy/all <message>
+
+
+ 6. File Transfer
+
+To initiate a file transfer:
+Copy/file <fingerprint> <filepath>
+Replace <fingerprint> with the recipient's fingerprint and <filepath> with the path to the file you want to send.
+
+## Security Considerations:
+
+Message Encryption: All private messages are encrypted end-to-end using AES-GCM for the message content and RSA for key exchange.
+Signatures: All messages include a counter and are signed to prevent replay attacks.
+Fingerprints: Users are identified by fingerprints, which are Base64 encoded SHA-256 hashes of their RSA public keys.
+File Transfers: Files are transferred over HTTP/HTTPS and are not authenticated. Keep file URLs secret.
+Intentional Vulnerabilities: Remember that this system includes intentional security flaws for educational purposes. Consider how these could be exploited or mitigated.
+
+## Exploring the System:
+As you use the system, consider the following aspects:
+
+How messages are routed through the server network.
+The security of the WebSocket connections.
+Potential vulnerabilities in the message encryption and signing process.
+How a malicious user or node could potentially misuse the system.
+The implications of the public chat feature on privacy.
+
+## Troubleshooting
+If you encounter issues:
+
+Ensure all prerequisites are correctly installed.
+Verify that the server is running and accessible.
+Check that the client is configured with the correct server address.
+Review any error messages in the terminal output.
 
 ## Future Improvements
 AES-GCM Encryption: AES-GCM encryption ensures safe client-to-client communication.
@@ -65,6 +130,4 @@ Never deploy this application in a real-world scenario without removing the inte
 This project was developed as part of an advanced secure programming assignment to illustrate common security flaws in communication systems.
 
 ## Disclaimer
-We have thoroughly tested the code to the best of our ability. However, we cannot guarantee it is completely error-free. Any remaining bugs or issues are unintentional, and we appreciate your understanding if any are discovered post-submission.
-
-This type of disclaimer helps manage expectations by acknowledging potential issues without assuming liability for any errors. It’s similar to “errors and omissions” disclaimers used in many industries, which protect against unintended mistakes in content or work​.
+We have thoroughly tested the code to the best of our ability. However, we cannot guarantee it is completely error-free. Any remaining bugs or issues are unintentional, and we appreciate your understanding if any are discovered post-submission. This is due to certain circumstances resulting in the group's last minute creation. 
