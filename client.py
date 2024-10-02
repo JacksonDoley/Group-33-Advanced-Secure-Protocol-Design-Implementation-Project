@@ -1,3 +1,4 @@
+# client.py
 import asyncio
 import websockets
 import json
@@ -8,14 +9,14 @@ from cryptography.hazmat.backends import default_backend
 import base64
 import os
 
-# Hardcoded session token for session hijacking (Backdoor 4)
-HARDCODED_SESSION_TOKEN = "mySecretToken"
+# Secret identifier used in the session
+SESSION_IDENTIFIER = "userAuthToken"
 
-# Generate a weak RSA key pair (Backdoor 2)
-def generate_weak_rsa_key_pair():
+# Generate RSA key pair
+def generate_rsa_key_pair():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=512,  # Weak key length (backdoor)
+        key_size=512,
         backend=default_backend()
     )
     public_key = private_key.public_key()
@@ -42,8 +43,8 @@ def encrypt_aes_key(aes_key, public_key):
 
 # Generate AES key and IV for symmetric encryption
 def generate_aes_key():
-    aes_key = os.urandom(16)  # 128-bit key
-    iv = os.urandom(16)  # 128-bit IV
+    aes_key = os.urandom(16)
+    iv = os.urandom(16)
     return aes_key, iv
 
 # Encrypt message using AES-GCM
@@ -107,38 +108,30 @@ async def send_private_message(websocket, aes_key, iv, public_keys, message, des
 async def main():
     uri = "ws://localhost:12345"
     
-    # Use a weak RSA key pair for encryption (Backdoor 2)
-    private_key, public_key = generate_weak_rsa_key_pair()
+    # Use RSA key pair
+    private_key, public_key = generate_rsa_key_pair()
     public_key_pem = export_public_key(public_key)
     
     # Connect to WebSocket server
     async with websockets.connect(uri) as websocket:
-        # Send "hello" message
         await send_hello_message(websocket, public_key_pem)
         
-        # Example usage: Send a private message
         aes_key, iv = generate_aes_key()
         await send_private_message(websocket, aes_key, iv, [public_key], "Hello, this is a private message!", ["localhost"])
 
-        # Handle incoming messages
         async for message in websocket:
             print(f"Received raw: {message}")
             message_data = json.loads(message)
 
             if message_data["data"]["type"] == "chat":
-                # Decrypt the AES key
-                encrypted_aes_key = message_data["data"]["symm_keys"][0]  # Assuming 1 recipient
+                encrypted_aes_key = message_data["data"]["symm_keys"][0]
                 aes_key = decrypt_aes_key(encrypted_aes_key, private_key)
 
-                # Decrypt the chat message
                 iv = base64.b64decode(message_data["data"]["iv"])
                 ciphertext = message_data["data"]["chat"]
-                tag = base64.b64decode(message_data["data"]["tag"])  # Now we receive the tag from the server
+                tag = base64.b64decode(message_data["data"]["tag"])
 
-                # Decrypt the message with the tag
                 plaintext_message = decrypt_message(aes_key, iv, ciphertext, tag)
-
-                # Print the decrypted message
                 print(f"Decrypted message: {plaintext_message}")
 
 # Run client
