@@ -1,4 +1,4 @@
-By Jackson Doley (A1851002), Xinghan Chen (), Yuyi Zhang ()
+By Jackson Doley (A1851002), Xinghan Chen (A1837210), Yuyi Zhang ()
 
 ## Introduction
 Through the implementation of a server and client component, this project creates a rudimentary chat system that facilitates communication between numerous clients. Incoming connections are managed by the server, which also enables communication between connected clients. Through the server, users may send and receive messages using the client application. Despite having important features like user listings, private messaging, and group messaging, this system can be easy to use. It does, however, also include deliberate flaws included for testing and teaching.
