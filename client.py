@@ -2,12 +2,13 @@
 import asyncio
 import websockets
 import json
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
 import base64
 import os
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
+from cryptography.hazmat.primitives.asymmetric import utils
 
 # Secret identifier used in the session
 SESSION_IDENTIFIER = "userAuthToken"
@@ -16,7 +17,7 @@ SESSION_IDENTIFIER = "userAuthToken"
 def generate_rsa_key_pair():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
-        key_size=512,
+        key_size=2048,  
         backend=default_backend()
     )
     public_key = private_key.public_key()
@@ -39,7 +40,7 @@ def encrypt_aes_key(aes_key, public_key):
             label=None
         )
     )
-    return base64.b64encode(encrypted_key).decode('utf-8')
+    return encrypted_key
 
 # Generate AES key and IV for symmetric encryption
 def generate_aes_key():
@@ -78,6 +79,35 @@ def decrypt_message(aes_key, iv, ciphertext, tag):
     ).decryptor()
     plaintext = decryptor.update(base64.b64decode(ciphertext)) + decryptor.finalize()
     return plaintext.decode('utf-8')
+
+# Sign message using RSA-PSS
+def sign_message(private_key, message):
+    signature = private_key.sign(
+        message.encode(),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    return base64.b64encode(signature).decode('utf-8')
+
+# Verify message using RSA-PSS
+def verify_message(public_key, message, signature):
+    try:
+        public_key.verify(
+            base64.b64decode(signature),
+            message.encode(),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        return True
+    except Exception as e:
+        print(f"Verification failed: {e}")
+        return False
 
 # Send "hello" message to the server
 async def send_hello_message(websocket, public_key_pem):
@@ -133,6 +163,13 @@ async def main():
 
                 plaintext_message = decrypt_message(aes_key, iv, ciphertext, tag)
                 print(f"Decrypted message: {plaintext_message}")
+
+                # Verify message integrity
+                signature = message_data["data"]["signature"]
+                if verify_message(public_key, plaintext_message, signature):
+                    print("Message integrity verified")
+                else:
+                    print("Message integrity verification failed")
 
 # Run client
 asyncio.run(main())
